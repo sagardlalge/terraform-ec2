@@ -3,6 +3,14 @@ pipeline {
 
     stages {
 
+        stage('Debug') {
+            steps {
+                sh 'pwd'
+                sh 'ls -la'
+                sh 'terraform version'
+            }
+        }
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -29,8 +37,7 @@ pipeline {
 
         stage('Terraform Apply') {
             steps {
-                input 'Apply Terraform?'
-
+                input message: 'Apply Terraform?'
                 sh 'terraform apply -auto-approve'
             }
         }
