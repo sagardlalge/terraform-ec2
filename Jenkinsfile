@@ -3,14 +3,6 @@ pipeline {
 
     stages {
 
-        stage('Debug') {
-            steps {
-                sh 'pwd'
-                sh 'ls -la'
-                sh 'terraform version'
-            }
-        }
-
         stage('Checkout') {
             steps {
                 checkout scm
@@ -19,26 +11,42 @@ pipeline {
 
         stage('Terraform Init') {
             steps {
-                sh 'terraform init'
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds']
+                ]) {
+                    sh 'terraform init'
+                }
             }
         }
 
         stage('Terraform Validate') {
             steps {
-                sh 'terraform validate'
+                sh 'terraform validate -no-color'
             }
         }
 
         stage('Terraform Plan') {
             steps {
-                sh 'terraform plan'
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds']
+                ]) {
+                    sh 'terraform plan -no-color'
+                }
             }
         }
 
         stage('Terraform Apply') {
             steps {
-                input message: 'Apply Terraform?'
-                sh 'terraform apply -auto-approve'
+                input 'Apply Terraform?'
+
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds']
+                ]) {
+                    sh 'terraform apply -auto-approve'
+                }
             }
         }
     }
